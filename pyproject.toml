@@ -1,0 +1,8 @@
+[project]
+name = "bully-election"
+version = "1.0.0"
+description = "Garcia-Molina's Bully election algorithm and a message-efficient variant"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
