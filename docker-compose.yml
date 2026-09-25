@@ -1,0 +1,49 @@
+# Five-node cluster. Try:
+#   docker compose up --build            # node 5 becomes coordinator
+#   docker compose stop node5            # node 4 takes over
+#   docker compose start node5           # node 5 bullies its way back
+# Switch algorithm with BULLY_ALGORITHM=original docker compose up --build
+x-env: &env
+  BULLY_ALGORITHM: ${BULLY_ALGORITHM:-improved}
+  BULLY_N: "5"
+  BULLY_PEERS: "node{id}:9000"
+
+x-node: &node
+  build: .
+  image: bully-election
+
+services:
+  node1:
+    <<: *node
+    hostname: node1
+    environment:
+      <<: *env
+      BULLY_ID: "1"
+
+  node2:
+    <<: *node
+    hostname: node2
+    environment:
+      <<: *env
+      BULLY_ID: "2"
+
+  node3:
+    <<: *node
+    hostname: node3
+    environment:
+      <<: *env
+      BULLY_ID: "3"
+
+  node4:
+    <<: *node
+    hostname: node4
+    environment:
+      <<: *env
+      BULLY_ID: "4"
+
+  node5:
+    <<: *node
+    hostname: node5
+    environment:
+      <<: *env
+      BULLY_ID: "5"
