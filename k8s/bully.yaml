@@ -1,0 +1,61 @@
+# Five-node cluster on Kubernetes.
+#   docker build -t bully-election .      (load into your cluster, e.g. kind load docker-image)
+#   kubectl apply -f k8s/bully.yaml
+#   kubectl logs -f bully-0               # watch state changes
+#   kubectl delete pod bully-4            # coordinator (node 5) crashes; StatefulSet restarts it
+# Pod bully-<ordinal> is node <ordinal + 1>; peers are found through the headless Service.
+apiVersion: v1
+kind: Service
+metadata:
+  name: bully
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: bully
+  ports:
+    - name: election
+      port: 9000
+      protocol: UDP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: bully
+spec:
+  serviceName: bully
+  replicas: 5
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: bully
+  template:
+    metadata:
+      labels:
+        app: bully
+    spec:
+      containers:
+        - name: node
+          image: bully-election
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: BULLY_ALGORITHM
+              value: improved
+            - name: BULLY_N
+              value: "5"
+            - name: BULLY_PEERS
+              value: "bully-{ord}.bully:9000"
+          ports:
+            - containerPort: 9000
+              protocol: UDP
+          volumeMounts:
+            - name: state
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: state
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Mi
