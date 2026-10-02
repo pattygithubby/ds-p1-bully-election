@@ -1,5 +1,91 @@
 <mxfile host="65bd71144e">
-    <diagram id="dmz4o3cre1zNeNLD5zgd" name="Bully (original)">
+    <diagram id="dmz4o3cre1zNeNLD5zgd" name="Bully (detailed)">
+        <mxGraphModel dx="308" dy="648" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" parent="1" style="text;html=1;fontSize=16;align=left;verticalAlign=middle;" value="&lt;b&gt;Bully algorithm (Garcia-Molina 1982): state machine of node i, i.e. S(i).s&lt;/b&gt;" vertex="1">
+                    <mxGeometry height="30" width="900" x="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="start" parent="1" style="ellipse;html=1;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+                    <mxGeometry height="30" width="30" x="135" y="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="down" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=4;fillColor=#f8cecc;strokeColor=#b85450;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Down&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;crashed (fail-stop), or restarted&lt;br&gt;and not yet in a group&lt;br&gt;&lt;br&gt;on restart / Recovery(i):&lt;br&gt;&amp;nbsp;&amp;nbsp;h := undefined" vertex="1">
+                    <mxGeometry height="140" width="220" x="40" y="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="alive" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=12;spacingTop=6;fillColor=none;strokeColor=#666666;dashed=0;fontStyle=1;fontSize=13;" value="Alive (node running; all S(i) in safe storage)" vertex="1">
+                    <mxGeometry height="560" width="1320" x="480" y="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="election" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=4;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Election&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;entry / STOP (halt all processing)&lt;br&gt;&lt;br&gt;[h = i] do / Halt(k, i) &amp;forall;k &amp;lt; i;&lt;br&gt;&amp;nbsp;&amp;nbsp;on ack: Up := Up &amp;cup; {k}&lt;br&gt;[h = j] wait for NewCoordinator(j)" vertex="1">
+                    <mxGeometry height="200" width="270" x="530" y="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="reorg" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=4;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Reorganization&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;coordinator c agreed, task d unknown&lt;br&gt;&lt;br&gt;[c = i] do / NewCoordinator(k, i) &amp;forall;k &amp;isin; Up;&lt;br&gt;&amp;nbsp;&amp;nbsp;compute d;&lt;br&gt;&amp;nbsp;&amp;nbsp;Ready(k, i, d) &amp;forall;k &amp;isin; Up&lt;br&gt;[c = j] wait for Ready(j, x)" vertex="1">
+                    <mxGeometry height="200" width="270" x="1000" y="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="normal" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=4;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Normal&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;do / execute task d&lt;br&gt;&lt;br&gt;[c = i] Check(i) periodically:&lt;br&gt;&amp;nbsp;&amp;nbsp;AreYouNormal(k) &amp;forall;k &amp;ne; i;&lt;br&gt;&amp;nbsp;&amp;nbsp;any &amp;quot;No&amp;quot; &amp;rarr; Election(i)&lt;br&gt;[c &amp;ne; i] Timeout(i): AreYouThere(c);&lt;br&gt;&amp;nbsp;&amp;nbsp;no reply &amp;rarr; Election(i)" vertex="1">
+                    <mxGeometry height="200" width="270" x="1470" y="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="internal" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingTop=2;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:12px&quot;&gt;Internal transitions in every Alive state&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;AreYouThere(j) / reply (existence probe)&lt;br&gt;AreYouNormal(j) / answer (s = Normal)&lt;br&gt;NewCoordinator(j) with guard false / ignore (stale election)&lt;br&gt;Ready(j, x) with guard false / ignore (stale election)" vertex="1">
+                    <mxGeometry height="125" width="520" x="860" y="495" as="geometry"/>
+                </mxCell>
+                <mxCell id="t0" edge="1" parent="1" source="start" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#000000;fontColor=#000000;fontSize=11;labelBackgroundColor=none;" target="down" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="t_rec" edge="1" parent="1" source="down" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#c26a00;fontColor=#c26a00;fontSize=11;labelBackgroundColor=none;exitX=1;exitY=0.214;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" target="election" value="Recovery(i) / Timeout(i)&lt;br&gt;[no j &amp;gt; i answers AreYouThere]&lt;br&gt;/ h := i; Up := {}">
+                    <mxGeometry relative="1" y="-28" as="geometry"/>
+                </mxCell>
+                <mxCell id="t_halt_down" edge="1" parent="1" source="down" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#c26a00;fontColor=#c26a00;fontSize=11;labelBackgroundColor=none;exitX=1;exitY=0.786;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" target="election" value="Halt(j)&lt;br&gt;/ h := j">
+                    <mxGeometry relative="1" y="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="t_er_c" edge="1" parent="1" source="election" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#1f5fbf;fontColor=#1f5fbf;fontSize=11;labelBackgroundColor=none;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" target="reorg" value="[h = i, Halt round done]&lt;br&gt;/ c := i&amp;nbsp;&amp;nbsp;(election point)">
+                    <mxGeometry relative="1" y="-20" as="geometry"/>
+                </mxCell>
+                <mxCell id="t_er_p" edge="1" parent="1" source="election" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#2e7d32;fontColor=#2e7d32;fontSize=11;labelBackgroundColor=none;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" target="reorg" value="NewCoordinator(j) [h = j]&lt;br&gt;/ c := j">
+                    <mxGeometry relative="1" y="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="t_rn_c" edge="1" parent="1" source="reorg" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#1f5fbf;fontColor=#1f5fbf;fontSize=11;labelBackgroundColor=none;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" target="normal" value="[c = i, all Ready acked]">
+                    <mxGeometry relative="1" y="-14" as="geometry"/>
+                </mxCell>
+                <mxCell id="t_rn_p" edge="1" parent="1" source="reorg" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#2e7d32;fontColor=#2e7d32;fontSize=11;labelBackgroundColor=none;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" target="normal" value="Ready(j, x) [c = j]&lt;br&gt;/ d := x">
+                    <mxGeometry relative="1" y="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="t_win" edge="1" parent="1" source="alive" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#c26a00;fontColor=#c26a00;fontSize=11;labelBackgroundColor=none;exitX=0.674;exitY=0;exitDx=0;exitDy=0;entryX=0.407;entryY=0;entryDx=0;entryDy=0;" target="election" value="Election(i) called [no j &amp;gt; i answers AreYouThere] / h := i; Up := {}">
+                    <mxGeometry relative="1" y="-12" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1370" y="50"/>
+                            <mxPoint x="640" y="50"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="t_halt" edge="1" parent="1" source="alive" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#c26a00;fontColor=#c26a00;fontSize=11;labelBackgroundColor=none;exitX=0.977;exitY=1;exitDx=0;exitDy=0;entryX=0.333;entryY=1;entryDx=0;entryDy=0;" target="election" value="Halt(j) / h := j">
+                    <mxGeometry relative="1" y="12" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1770" y="720"/>
+                            <mxPoint x="620" y="720"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="t_crash" edge="1" parent="1" source="alive" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#b85450;fontColor=#b85450;fontSize=11;labelBackgroundColor=none;dashed=1;exitX=0.0227;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="down" value="crash (fail-stop)">
+                    <mxGeometry relative="1" y="12" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="510" y="780"/>
+                            <mxPoint x="150" y="780"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="n_callers" parent="1" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" value="&lt;b&gt;Who calls Election(i)&lt;/b&gt;&lt;br&gt;&amp;bull; Recovery(i): on restart (h := undefined first)&lt;br&gt;&amp;bull; Timeout(i): coordinator silent / unreachable&lt;br&gt;&amp;bull; Check(i): coordinator finds a node not Normal&lt;br&gt;&amp;bull; Part 2 timeout: a NewCoordinator or Ready call&lt;br&gt;&amp;nbsp;&amp;nbsp;was not acked, so the election restarts&lt;br&gt;&lt;br&gt;If some j &amp;gt; i answers AreYouThere, Election(i) returns:&lt;br&gt;s is unchanged and i waits to be halted by a higher&lt;br&gt;node. Timeout(i) retries if no coordinator appears." vertex="1">
+                    <mxGeometry height="190" width="380" x="40" y="830" as="geometry"/>
+                </mxCell>
+                <mxCell id="n_guards" parent="1" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" value="&lt;b&gt;Why the guards matter&lt;/b&gt;&lt;br&gt;Halt and announce are two separate steps. Halt puts every&lt;br&gt;lower node into an inert Election state and records h, the&lt;br&gt;node that halted it. NewCoordinator(j) is accepted only if&lt;br&gt;h = j, and Ready(j, x) only if c = j. Messages from an&lt;br&gt;abandoned election therefore cannot move a node forward.&lt;br&gt;&lt;br&gt;Assumptions 8 and 9 (bounded delivery T, no pauses) make&lt;br&gt;a timeout mean the peer is definitely down." vertex="1">
+                    <mxGeometry height="190" width="400" x="450" y="830" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" value="&lt;b&gt;Legend&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#1f5fbf&quot;&gt;&amp;#9644;&lt;/font&gt; node i becomes coordinator&lt;br&gt;&lt;font color=&quot;#2e7d32&quot;&gt;&amp;#9644;&lt;/font&gt; node i follows coordinator j &amp;gt; i&lt;br&gt;&lt;font color=&quot;#c26a00&quot;&gt;&amp;#9644;&lt;/font&gt; enters Election (halted, or starts a bid)&lt;br&gt;&lt;font color=&quot;#b85450&quot;&gt;&amp;#9476;&lt;/font&gt; crash, from any Alive state&lt;br&gt;&lt;br&gt;Arrows leaving the Alive border apply to every&lt;br&gt;substate (Election, Reorganization, Normal)." vertex="1">
+                    <mxGeometry height="150" width="330" x="880" y="830" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="simpleOverviewPage01" name="Bully (simple overview)">
         <mxGraphModel dx="1140" dy="908" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1450" pageHeight="760" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
