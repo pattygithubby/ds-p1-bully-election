@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="dmz4o3cre1zNeNLD5zgd" name="Bully (detailed)">
-        <mxGraphModel dx="308" dy="648" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="483" dy="276" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -19,7 +19,7 @@
                 <mxCell id="election" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=4;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Election&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;entry / STOP (halt all processing)&lt;br&gt;&lt;br&gt;[h = i] do / Halt(k, i) &amp;forall;k &amp;lt; i;&lt;br&gt;&amp;nbsp;&amp;nbsp;on ack: Up := Up &amp;cup; {k}&lt;br&gt;[h = j] wait for NewCoordinator(j)" vertex="1">
                     <mxGeometry height="200" width="270" x="530" y="250" as="geometry"/>
                 </mxCell>
-                <mxCell id="reorg" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=4;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Reorganization&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;coordinator c agreed, task d unknown&lt;br&gt;&lt;br&gt;[c = i] do / NewCoordinator(k, i) &amp;forall;k &amp;isin; Up;&lt;br&gt;&amp;nbsp;&amp;nbsp;compute d;&lt;br&gt;&amp;nbsp;&amp;nbsp;Ready(k, i, d) &amp;forall;k &amp;isin; Up&lt;br&gt;[c = j] wait for Ready(j, x)" vertex="1">
+                <mxCell id="reorg" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=4;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Reorganization&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;coordinator c agreed, task d unknown&lt;br&gt;&lt;br&gt;[c = i] do / NewCoordinator(k, i) ∀k ∈ Up;&lt;br&gt;&amp;nbsp;&amp;nbsp;compute d;&lt;br&gt;&amp;nbsp;&amp;nbsp;Ready(k, i, d) ∀ k ∈ Up&lt;br&gt;[c = j] wait for Ready(j, x)" vertex="1">
                     <mxGeometry height="200" width="270" x="1000" y="250" as="geometry"/>
                 </mxCell>
                 <mxCell id="normal" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=4;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Normal&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;do / execute task d&lt;br&gt;&lt;br&gt;[c = i] Check(i) periodically:&lt;br&gt;&amp;nbsp;&amp;nbsp;AreYouNormal(k) &amp;forall;k &amp;ne; i;&lt;br&gt;&amp;nbsp;&amp;nbsp;any &amp;quot;No&amp;quot; &amp;rarr; Election(i)&lt;br&gt;[c &amp;ne; i] Timeout(i): AreYouThere(c);&lt;br&gt;&amp;nbsp;&amp;nbsp;no reply &amp;rarr; Election(i)" vertex="1">
@@ -32,25 +32,38 @@
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="t_rec" edge="1" parent="1" source="down" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#c26a00;fontColor=#c26a00;fontSize=11;labelBackgroundColor=none;exitX=1;exitY=0.214;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" target="election" value="Recovery(i) / Timeout(i)&lt;br&gt;[no j &amp;gt; i answers AreYouThere]&lt;br&gt;/ h := i; Up := {}">
-                    <mxGeometry relative="1" y="-28" as="geometry"/>
+                    <mxGeometry relative="1" x="0.0041" y="-28" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
                 </mxCell>
                 <mxCell id="t_halt_down" edge="1" parent="1" source="down" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#c26a00;fontColor=#c26a00;fontSize=11;labelBackgroundColor=none;exitX=1;exitY=0.786;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" target="election" value="Halt(j)&lt;br&gt;/ h := j">
-                    <mxGeometry relative="1" y="18" as="geometry"/>
+                    <mxGeometry relative="1" x="0.037" y="-30" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
                 </mxCell>
                 <mxCell id="t_er_c" edge="1" parent="1" source="election" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#1f5fbf;fontColor=#1f5fbf;fontSize=11;labelBackgroundColor=none;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" target="reorg" value="[h = i, Halt round done]&lt;br&gt;/ c := i&amp;nbsp;&amp;nbsp;(election point)">
-                    <mxGeometry relative="1" y="-20" as="geometry"/>
+                    <mxGeometry relative="1" y="-20" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
                 </mxCell>
                 <mxCell id="t_er_p" edge="1" parent="1" source="election" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#2e7d32;fontColor=#2e7d32;fontSize=11;labelBackgroundColor=none;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" target="reorg" value="NewCoordinator(j) [h = j]&lt;br&gt;/ c := j">
-                    <mxGeometry relative="1" y="20" as="geometry"/>
+                    <mxGeometry relative="1" y="20" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
                 </mxCell>
                 <mxCell id="t_rn_c" edge="1" parent="1" source="reorg" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#1f5fbf;fontColor=#1f5fbf;fontSize=11;labelBackgroundColor=none;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" target="normal" value="[c = i, all Ready acked]">
-                    <mxGeometry relative="1" y="-14" as="geometry"/>
+                    <mxGeometry relative="1" y="-14" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
                 </mxCell>
                 <mxCell id="t_rn_p" edge="1" parent="1" source="reorg" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#2e7d32;fontColor=#2e7d32;fontSize=11;labelBackgroundColor=none;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" target="normal" value="Ready(j, x) [c = j]&lt;br&gt;/ d := x">
-                    <mxGeometry relative="1" y="20" as="geometry"/>
+                    <mxGeometry relative="1" y="20" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
                 </mxCell>
                 <mxCell id="t_win" edge="1" parent="1" source="alive" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#c26a00;fontColor=#c26a00;fontSize=11;labelBackgroundColor=none;exitX=0.674;exitY=0;exitDx=0;exitDy=0;entryX=0.407;entryY=0;entryDx=0;entryDy=0;" target="election" value="Election(i) called [no j &amp;gt; i answers AreYouThere] / h := i; Up := {}">
-                    <mxGeometry relative="1" y="-12" as="geometry">
+                    <mxGeometry relative="1" x="-0.0006" y="-12" as="geometry">
+                        <mxPoint as="offset"/>
                         <Array as="points">
                             <mxPoint x="1370" y="50"/>
                             <mxPoint x="640" y="50"/>
@@ -68,8 +81,8 @@
                 <mxCell id="t_crash" edge="1" parent="1" source="alive" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=10;strokeWidth=1.5;strokeColor=#b85450;fontColor=#b85450;fontSize=11;labelBackgroundColor=none;dashed=1;exitX=0.0227;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="down" value="crash (fail-stop)">
                     <mxGeometry relative="1" y="12" as="geometry">
                         <Array as="points">
-                            <mxPoint x="510" y="780"/>
-                            <mxPoint x="150" y="780"/>
+                            <mxPoint x="510" y="720"/>
+                            <mxPoint x="150" y="720"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
