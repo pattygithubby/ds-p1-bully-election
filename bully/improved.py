@@ -1,5 +1,5 @@
-from .node import Node
+from .original import OriginalNode
 
 
-class ImprovedNode(Node):
+class ImprovedNode(OriginalNode):
     pass

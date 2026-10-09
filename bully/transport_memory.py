@@ -22,11 +22,19 @@ class InMemoryCommunication(Communication):
         self.nodes[node.id] = node            # key: the node's id, value: the node itself
 
     def crash(self, node_id: int) -> None:
-        """Simulate a crash: the node stops answering."""
+        """Simulate a crash: the node stops answering.
+
+        Only incoming messages are blocked. The caller must also stop calling the
+        crashed node's own procedures, since a crashed node sends nothing (Assumption 5).
+        """
         self.crashed.add(node_id)
 
     def restart(self, node_id: int) -> None:
-        """The node answers again."""
+        """The node answers again.
+
+        A recovering node starts from safe storage, not from its old memory: build a new
+        Node on the same storage, register() it, and call its recovery().
+        """
         self.crashed.discard(node_id)           # must not fail if the node was never crashed
         
     def _deliver(self, target_id: int, message: str):
