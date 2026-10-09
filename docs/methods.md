@@ -75,7 +75,14 @@ With the UDP transport the handlers run in the listening thread while `election(
 
 ## `improved.py` — `ImprovedNode`
 
-An empty subclass of `OriginalNode` and the hook for the message-efficient variant. At present it behaves exactly like `OriginalNode`. `BULLY_ALGORITHM` selects between the two.
+The improved variant, a subclass of `OriginalNode`. NewCoordinator is merged into Ready, so an election by node `i` sends `2(i − 1)` messages to the lower nodes instead of `3(i − 1)`. `BULLY_ALGORITHM` selects between the two variants.
+
+| Method | Description |
+|---|---|
+| `ready(sender_id, task)` | Sets the coordinator, stores the task and moves to `NORMAL` in one step. Ignored unless the node is in `ELECTION` and the sender is the node that halted it, which is the guard NewCoordinator has in the original. |
+| `election()` | As in `OriginalNode`, without the NewCoordinator round: after the Halt round the node sets itself as coordinator, builds and stores the task, and sends Ready to every node in `up`. |
+
+Everything else is inherited. `new_coordinator()` still exists but is never called, because the message is not sent. A lower node goes straight from `ELECTION` to `NORMAL`; only the coordinator passes through `REORGANIZATION`.
 
 ## `communication.py` — `Communication`
 

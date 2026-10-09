@@ -181,10 +181,10 @@ class RecoverDuring(InMemoryCommunication):
         return super().send_ready(target_id, sender_id, task)
 
 
-def race(message, target):
+def race(message, target, node_class=OriginalNode):
     """Node 3 runs an election with node 4 down; node 4 recovers at the given point in it."""
     comm = RecoverDuring(message, sender=3, target=target, riser=4)
-    cluster = Cluster(4, comm)
+    cluster = Cluster(4, comm, node_class)
     comm.cluster = cluster
     comm.crash(4)
     cluster.recover_all()
