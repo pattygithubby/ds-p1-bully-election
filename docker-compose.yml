@@ -3,8 +3,10 @@
 #   docker compose stop node5            # node 4 takes over
 #   docker compose start node5           # node 5 bullies its way back
 # Switch algorithm with BULLY_ALGORITHM=original docker compose up --build
+# Also see the routine heartbeats with BULLY_LOG_LEVEL=DEBUG docker compose up
 x-env: &env
   BULLY_ALGORITHM: ${BULLY_ALGORITHM:-improved}
+  BULLY_LOG_LEVEL: ${BULLY_LOG_LEVEL:-INFO}
   BULLY_N: "5"
   BULLY_PEERS: "node{id}:9000"
 

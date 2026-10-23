@@ -1,0 +1,129 @@
+algorithm,scenario,n,repetition,total,election_messages,detection_messages,AreYouThere,AreYouNormal,Halt,NewCoordinator,Ready,unanswered,rounds,leader_calls,elections,seconds,correct_leader
+original,first election,2,,4,3,1,1,0,1,1,1,0,0,3,1,,True
+improved,first election,2,,3,2,1,1,0,1,0,1,0,0,2,1,,True
+original,first election,3,,8,6,2,2,0,2,2,2,0,0,6,1,,True
+improved,first election,3,,6,4,2,2,0,2,0,2,0,0,4,1,,True
+original,first election,5,,16,12,4,4,0,4,4,4,0,0,12,1,,True
+improved,first election,5,,12,8,4,4,0,4,0,4,0,0,8,1,,True
+original,first election,10,,36,27,9,9,0,9,9,9,0,0,27,1,,True
+improved,first election,10,,27,18,9,9,0,9,0,9,0,0,18,1,,True
+original,first election,20,,76,57,19,19,0,19,19,19,0,0,57,1,,True
+improved,first election,20,,57,38,19,19,0,19,0,19,0,0,38,1,,True
+original,first election,30,,116,87,29,29,0,29,29,29,0,0,87,1,,True
+improved,first election,30,,87,58,29,29,0,29,0,29,0,0,58,1,,True
+original,first election,40,,156,117,39,39,0,39,39,39,0,0,117,1,,True
+improved,first election,40,,117,78,39,39,0,39,0,39,0,0,78,1,,True
+original,first election,50,,196,147,49,49,0,49,49,49,0,0,147,1,,True
+improved,first election,50,,147,98,49,49,0,49,0,49,0,0,98,1,,True
+original,coordinator crash,2,,2,0,2,2,0,0,0,0,2,1,2,1,,True
+improved,coordinator crash,2,,2,0,2,2,0,0,0,0,2,1,2,1,,True
+original,coordinator crash,3,,7,3,4,4,0,1,1,1,3,1,5,1,,True
+improved,coordinator crash,3,,6,2,4,4,0,1,0,1,3,1,4,1,,True
+original,coordinator crash,5,,17,9,8,8,0,3,3,3,5,1,11,1,,True
+improved,coordinator crash,5,,14,6,8,8,0,3,0,3,5,1,8,1,,True
+original,coordinator crash,10,,42,24,18,18,0,8,8,8,10,1,26,1,,True
+improved,coordinator crash,10,,34,16,18,18,0,8,0,8,10,1,18,1,,True
+original,coordinator crash,20,,92,54,38,38,0,18,18,18,20,1,56,1,,True
+improved,coordinator crash,20,,74,36,38,38,0,18,0,18,20,1,38,1,,True
+original,coordinator crash,30,,142,84,58,58,0,28,28,28,30,1,86,1,,True
+improved,coordinator crash,30,,114,56,58,58,0,28,0,28,30,1,58,1,,True
+original,coordinator crash,40,,192,114,78,78,0,38,38,38,40,1,116,1,,True
+improved,coordinator crash,40,,154,76,78,78,0,38,0,38,40,1,78,1,,True
+original,coordinator crash,50,,242,144,98,98,0,48,48,48,50,1,146,1,,True
+improved,coordinator crash,50,,194,96,98,98,0,48,0,48,50,1,98,1,,True
+original,"crash, one detector",2,,2,0,2,2,0,0,0,0,2,0,2,1,,True
+improved,"crash, one detector",2,,2,0,2,2,0,0,0,0,2,0,2,1,,True
+original,"crash, one detector",3,,5,3,2,2,0,1,1,1,2,0,5,1,,True
+improved,"crash, one detector",3,,4,2,2,2,0,1,0,1,2,0,4,1,,True
+original,"crash, one detector",5,,11,9,2,2,0,3,3,3,2,0,11,1,,True
+improved,"crash, one detector",5,,8,6,2,2,0,3,0,3,2,0,8,1,,True
+original,"crash, one detector",10,,26,24,2,2,0,8,8,8,2,0,26,1,,True
+improved,"crash, one detector",10,,18,16,2,2,0,8,0,8,2,0,18,1,,True
+original,"crash, one detector",20,,56,54,2,2,0,18,18,18,2,0,56,1,,True
+improved,"crash, one detector",20,,38,36,2,2,0,18,0,18,2,0,38,1,,True
+original,"crash, one detector",30,,86,84,2,2,0,28,28,28,2,0,86,1,,True
+improved,"crash, one detector",30,,58,56,2,2,0,28,0,28,2,0,58,1,,True
+original,"crash, one detector",40,,116,114,2,2,0,38,38,38,2,0,116,1,,True
+improved,"crash, one detector",40,,78,76,2,2,0,38,0,38,2,0,78,1,,True
+original,"crash, one detector",50,,146,144,2,2,0,48,48,48,2,0,146,1,,True
+improved,"crash, one detector",50,,98,96,2,2,0,48,0,48,2,0,98,1,,True
+original,half crash,2,,2,0,2,2,0,0,0,0,2,1,2,1,,True
+improved,half crash,2,,2,0,2,2,0,0,0,0,2,1,2,1,,True
+original,half crash,3,,7,3,4,4,0,1,1,1,3,1,5,1,,True
+improved,half crash,3,,6,2,4,4,0,1,0,1,3,1,4,1,,True
+original,half crash,5,,13,6,7,7,0,2,2,2,5,1,9,1,,True
+improved,half crash,5,,11,4,7,7,0,2,0,2,5,1,7,1,,True
+original,half crash,10,,26,12,14,14,0,4,4,4,10,1,18,1,,True
+improved,half crash,10,,22,8,14,14,0,4,0,4,10,1,14,1,,True
+original,half crash,20,,56,27,29,29,0,9,9,9,20,1,38,1,,True
+improved,half crash,20,,47,18,29,29,0,9,0,9,20,1,29,1,,True
+original,half crash,30,,86,42,44,44,0,14,14,14,30,1,58,1,,True
+improved,half crash,30,,72,28,44,44,0,14,0,14,30,1,44,1,,True
+original,half crash,40,,116,57,59,59,0,19,19,19,40,1,78,1,,True
+improved,half crash,40,,97,38,59,59,0,19,0,19,40,1,59,1,,True
+original,half crash,50,,146,72,74,74,0,24,24,24,50,1,98,1,,True
+improved,half crash,50,,122,48,74,74,0,24,0,24,50,1,74,1,,True
+original,coordinator returns,2,,3,3,0,0,0,1,1,1,0,0,3,1,,True
+improved,coordinator returns,2,,2,2,0,0,0,1,0,1,0,0,2,1,,True
+original,coordinator returns,3,,6,6,0,0,0,2,2,2,0,0,6,1,,True
+improved,coordinator returns,3,,4,4,0,0,0,2,0,2,0,0,4,1,,True
+original,coordinator returns,5,,12,12,0,0,0,4,4,4,0,0,12,1,,True
+improved,coordinator returns,5,,8,8,0,0,0,4,0,4,0,0,8,1,,True
+original,coordinator returns,10,,27,27,0,0,0,9,9,9,0,0,27,1,,True
+improved,coordinator returns,10,,18,18,0,0,0,9,0,9,0,0,18,1,,True
+original,coordinator returns,20,,57,57,0,0,0,19,19,19,0,0,57,1,,True
+improved,coordinator returns,20,,38,38,0,0,0,19,0,19,0,0,38,1,,True
+original,coordinator returns,30,,87,87,0,0,0,29,29,29,0,0,87,1,,True
+improved,coordinator returns,30,,58,58,0,0,0,29,0,29,0,0,58,1,,True
+original,coordinator returns,40,,117,117,0,0,0,39,39,39,0,0,117,1,,True
+improved,coordinator returns,40,,78,78,0,0,0,39,0,39,0,0,78,1,,True
+original,coordinator returns,50,,147,147,0,0,0,49,49,49,0,0,147,1,,True
+improved,coordinator returns,50,,98,98,0,0,0,49,0,49,0,0,98,1,,True
+original,join lowest first,2,,4,3,1,1,0,1,1,1,1,0,3,2,,True
+improved,join lowest first,2,,3,2,1,1,0,1,0,1,1,0,2,2,,True
+original,join lowest first,3,,12,9,3,3,0,3,3,3,3,0,6,3,,True
+improved,join lowest first,3,,9,6,3,3,0,3,0,3,3,0,4,3,,True
+original,join lowest first,5,,40,30,10,10,0,10,10,10,10,0,12,5,,True
+improved,join lowest first,5,,30,20,10,10,0,10,0,10,10,0,8,5,,True
+original,join lowest first,10,,180,135,45,45,0,45,45,45,45,0,27,10,,True
+improved,join lowest first,10,,135,90,45,45,0,45,0,45,45,0,18,10,,True
+original,join lowest first,20,,760,570,190,190,0,190,190,190,190,0,57,20,,True
+improved,join lowest first,20,,570,380,190,190,0,190,0,190,190,0,38,20,,True
+original,join lowest first,30,,1740,1305,435,435,0,435,435,435,435,0,87,30,,True
+improved,join lowest first,30,,1305,870,435,435,0,435,0,435,435,0,58,30,,True
+original,join lowest first,40,,3120,2340,780,780,0,780,780,780,780,0,117,40,,True
+improved,join lowest first,40,,2340,1560,780,780,0,780,0,780,780,0,78,40,,True
+original,join lowest first,50,,4900,3675,1225,1225,0,1225,1225,1225,1225,0,147,50,,True
+improved,join lowest first,50,,3675,2450,1225,1225,0,1225,0,1225,1225,0,98,50,,True
+original,join highest first,2,,7,4,3,2,1,2,1,1,1,0,5,2,,True
+improved,join highest first,2,,6,3,3,2,1,2,0,1,1,0,4,2,,True
+original,join highest first,3,,20,12,8,5,3,6,3,3,4,0,15,3,,True
+improved,join highest first,3,,17,9,8,5,3,6,0,3,4,0,12,3,,True
+original,join highest first,5,,64,40,24,14,10,20,10,10,16,0,50,5,,True
+improved,join highest first,5,,54,30,24,14,10,20,0,10,16,0,40,5,,True
+original,join highest first,10,,279,180,99,54,45,90,45,45,81,0,225,10,,True
+improved,join highest first,10,,234,135,99,54,45,90,0,45,81,0,180,10,,True
+original,join highest first,20,,1159,760,399,209,190,380,190,190,361,0,950,20,,True
+improved,join highest first,20,,969,570,399,209,190,380,0,190,361,0,760,20,,True
+original,join highest first,30,,2639,1740,899,464,435,870,435,435,841,0,2175,30,,True
+improved,join highest first,30,,2204,1305,899,464,435,870,0,435,841,0,1740,30,,True
+original,join highest first,40,,4719,3120,1599,819,780,1560,780,780,1521,0,3900,40,,True
+improved,join highest first,40,,3939,2340,1599,819,780,1560,0,780,1521,0,3120,40,,True
+original,join highest first,50,,7399,4900,2499,1274,1225,2450,1225,1225,2401,0,6125,50,,True
+improved,join highest first,50,,6174,3675,2499,1274,1225,2450,0,1225,2401,0,4900,50,,True
+original,steady state,2,,2,0,2,1,1,0,0,0,0,0,1,0,,True
+improved,steady state,2,,2,0,2,1,1,0,0,0,0,0,1,0,,True
+original,steady state,3,,4,0,4,2,2,0,0,0,0,0,2,0,,True
+improved,steady state,3,,4,0,4,2,2,0,0,0,0,0,2,0,,True
+original,steady state,5,,8,0,8,4,4,0,0,0,0,0,4,0,,True
+improved,steady state,5,,8,0,8,4,4,0,0,0,0,0,4,0,,True
+original,steady state,10,,18,0,18,9,9,0,0,0,0,0,9,0,,True
+improved,steady state,10,,18,0,18,9,9,0,0,0,0,0,9,0,,True
+original,steady state,20,,38,0,38,19,19,0,0,0,0,0,19,0,,True
+improved,steady state,20,,38,0,38,19,19,0,0,0,0,0,19,0,,True
+original,steady state,30,,58,0,58,29,29,0,0,0,0,0,29,0,,True
+improved,steady state,30,,58,0,58,29,29,0,0,0,0,0,29,0,,True
+original,steady state,40,,78,0,78,39,39,0,0,0,0,0,39,0,,True
+improved,steady state,40,,78,0,78,39,39,0,0,0,0,0,39,0,,True
+original,steady state,50,,98,0,98,49,49,0,0,0,0,0,49,0,,True
+improved,steady state,50,,98,0,98,49,49,0,0,0,0,0,49,0,,True

@@ -1,3 +1,4 @@
+import logging
 import threading
 import time
 from pathlib import Path
@@ -5,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from bully import __main__ as cli
-from bully.state import StateVector
+from bully.state import StateVector, Status, TaskDefinition
 from bully.storage import SafeStorage
 from bully.transport_udp import UdpCommunication
 
@@ -61,6 +62,10 @@ def test_config_id_from_kubernetes_hostname():
 def test_config_timeout_can_be_set():
     assert cli.Config.from_env({**COMPOSE_ENV, "BULLY_TIMEOUT": "0.25"}).timeout == 0.25
 
+def test_config_log_level_defaults_to_info_and_can_be_set():
+    assert cli.Config.from_env(COMPOSE_ENV).log_level == "INFO"
+    assert cli.Config.from_env({**COMPOSE_ENV, "BULLY_LOG_LEVEL": "debug"}).log_level == "DEBUG"
+
 @pytest.mark.parametrize("change", [
     {"BULLY_N": None},                    # missing
     {"BULLY_PEERS": None},                # missing
@@ -69,12 +74,47 @@ def test_config_timeout_can_be_set():
     {"BULLY_ID": "0"},
     {"BULLY_ID": "three"},                # not a number
     {"BULLY_ALGORITHM": "fastest"},       # unknown
+    {"BULLY_LOG_LEVEL": "LOUD"},          # unknown
 ])
 def test_config_rejects_bad_env(change):
     env = {**COMPOSE_ENV, **change}
     env = {name: value for name, value in env.items() if value is not None}
     with pytest.raises(ValueError):
         cli.Config.from_env(env)
+
+
+# --- What is logged ---
+TASK = TaskDefinition(participants=(1, 2, 4), application_algorithm="x")
+
+@pytest.mark.parametrize("state, line", [
+    (StateVector(), "DOWN: starting"),
+    (StateVector(s=Status.ELECTION, h=4), "ELECTION: running its own election"),
+    (StateVector(s=Status.ELECTION, h=5), "ELECTION: halted by node 5, waiting for it"),
+    (StateVector(s=Status.REORGANIZATION, c=4, up={2, 1}), "REORGANIZATION: coordinator, announcing to nodes [1, 2]"),
+    (StateVector(s=Status.REORGANIZATION, c=5), "REORGANIZATION: node 5 is coordinator, waiting for the task"),
+    (StateVector(s=Status.NORMAL, c=4, d=TASK), "NORMAL: coordinator of nodes [1, 2, 4]"),
+    (StateVector(s=Status.NORMAL, c=5, d=TASK), "NORMAL: node 5 is coordinator"),
+])
+def test_describe_says_what_the_state_means(state, line):
+    assert cli.describe(4, state) == line
+
+def test_logging_storage_saves_and_logs_only_changes(tmp_path, caplog):
+    storage = cli.LoggingStorage(tmp_path / "node4.json", node_id=4)
+    with caplog.at_level(logging.INFO, logger="bully"):
+        storage.atomic_update(StateVector(s=Status.ELECTION, h=5))
+        storage.atomic_update(StateVector(s=Status.ELECTION, h=5))     # same meaning: not logged again
+        storage.atomic_update(StateVector(s=Status.REORGANIZATION, c=5))
+    assert caplog.messages == [
+        "ELECTION: halted by node 5, waiting for it",
+        "REORGANIZATION: node 5 is coordinator, waiting for the task",
+    ]
+    assert storage.load().s == Status.REORGANIZATION                   # and it really saved
+
+def test_message_summary():
+    comm = UdpCommunication(0.3, {}, port=0)
+    comm.sent.update({"Halt": 2, "AreYouThere": 3})
+    comm.unanswered.update({"AreYouThere": 1})
+    assert cli.message_summary(comm) == "sent 5 messages (AreYouThere 3, Halt 2), 1 unanswered"
 
 
 # --- build ---

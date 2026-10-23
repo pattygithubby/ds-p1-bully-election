@@ -9,14 +9,16 @@ Configured through environment variables:
     BULLY_PORT       UDP port to listen on (default: 9000)
     BULLY_STATE_DIR  directory for safe storage (default: /data)
     BULLY_TIMEOUT    the bound T in seconds (default: 1.0)
+    BULLY_LOG_LEVEL  INFO shows state changes, election messages and failures;
+                     DEBUG also shows the routine heartbeats (default: INFO)
 
 What this file expects from Node (see the class diagram):
     NodeClass(node_id, n, comm, storage)   constructor
     node.recovery()                        called once at start-up
     node.check(), node.timeout()           called every CHECK_INTERVAL seconds
-    node.state                             the StateVector, read for logging
 """
 
+import logging
 import os
 import re
 import signal
@@ -27,12 +29,16 @@ from pathlib import Path
 
 from .improved import ImprovedNode
 from .original import OriginalNode
+from .state import StateVector, Status
 from .storage import SafeStorage
 from .transport_udp import UdpCommunication, peers_from_template
 
 ALGORITHMS = {"original": OriginalNode, "improved": ImprovedNode}
+LOG_LEVELS = ("DEBUG", "INFO", "WARNING")
 
 CHECK_INTERVAL = 2.0  # seconds between each round of check() and timeout()
+
+log = logging.getLogger("bully")
 
 
 @dataclass(frozen=True)
@@ -46,6 +52,7 @@ class Config:
     port: int
     state_dir: Path
     timeout: float   # the bound T, in seconds
+    log_level: str = "INFO"
 
     @classmethod
     def from_env(cls, env) -> "Config":
@@ -65,6 +72,10 @@ class Config:
         if "BULLY_PEERS" not in env:
             raise ValueError("BULLY_PEERS is not set")
 
+        log_level = env.get("BULLY_LOG_LEVEL", "INFO").upper()
+        if log_level not in LOG_LEVELS:
+            raise ValueError(f"BULLY_LOG_LEVEL must be one of {list(LOG_LEVELS)}, not {log_level!r}")
+
         return cls(
             node_id=node_id,
             n=n,
@@ -73,6 +84,7 @@ class Config:
             port=_number(env, "BULLY_PORT", int, default="9000"),
             state_dir=Path(env.get("BULLY_STATE_DIR", "/data")),
             timeout=_number(env, "BULLY_TIMEOUT", float, default="1.0"),
+            log_level=log_level,
         )
 
 
@@ -95,41 +107,72 @@ def _id_from_hostname(hostname: str) -> int:
     return int(match.group(1)) + 1
 
 
+def describe(node_id: int, state: StateVector) -> str:
+    """Say in one line what a node's state means, e.g. "ELECTION: halted by node 5, waiting for it"."""
+    if state.s == Status.DOWN:
+        return "DOWN: starting"
+    if state.s == Status.ELECTION:
+        if state.h == node_id:
+            return "ELECTION: running its own election"
+        return f"ELECTION: halted by node {state.h}, waiting for it"
+    if state.s == Status.REORGANIZATION:
+        if state.c == node_id:
+            return f"REORGANIZATION: coordinator, announcing to nodes {sorted(state.up)}"
+        return f"REORGANIZATION: node {state.c} is coordinator, waiting for the task"
+    if state.c == node_id:
+        return f"NORMAL: coordinator of nodes {list(state.d.participants)}"
+    return f"NORMAL: node {state.c} is coordinator"
+
+
+class LoggingStorage(SafeStorage):
+    """SafeStorage that also logs the node's state each time its meaning changes.
+
+    Every state change is saved (Assumption 4), so the save is the one place where every
+    change can be seen, whichever thread made it.
+    """
+
+    def __init__(self, path: Path, node_id: int):
+        super().__init__(path)
+        self.node_id = node_id
+        self._last_line = None   # the description logged last, to log only real changes
+
+    def atomic_update(self, state: StateVector) -> None:
+        super().atomic_update(state)
+        line = describe(self.node_id, state)
+        if line != self._last_line:
+            log.info(line)
+            self._last_line = line
+
+
+def message_summary(comm) -> str:
+    """E.g. "sent 37 messages (AreYouThere 20, Halt 6, ...), 5 unanswered"."""
+    by_type = ", ".join(f"{kind} {count}" for kind, count in sorted(comm.sent.items()))
+    return (f"sent {comm.sent.total()} messages ({by_type or 'none'}), "
+            f"{comm.unanswered.total()} unanswered")
+
+
 def build(config: Config):
     """Create the node and its communication from the config. Nothing is started yet."""
     config.state_dir.mkdir(parents=True, exist_ok=True)   # SafeStorage needs the folder to exist
-    storage = SafeStorage(config.state_dir / f"node{config.node_id}.json")
+    storage = LoggingStorage(config.state_dir / f"node{config.node_id}.json", config.node_id)
     peers = peers_from_template(config.peers, config.n)
     comm = UdpCommunication(config.timeout, peers, config.port)
     node = ALGORITHMS[config.algorithm](config.node_id, config.n, comm, storage)
     return node, comm
 
 
-def describe(node) -> str:
-    return f"status={node.state.s.name} coordinator={node.state.c}"
-
-
-def log(node, text: str) -> None:
-    print(f"[node {node.id}] {text}", flush=True)
-
-
 def serve(node, comm, stop: threading.Event, interval: float = CHECK_INTERVAL) -> None:
-    """Run the node until stop is set."""
+    """Run the node until stop is set. State changes are logged by LoggingStorage."""
     comm.start(node)    # start answering the other nodes before taking part in an election
     try:
-        log(node, f"started, {describe(node)}")
+        log.info("listening on port %d", comm.port)
         node.recovery()    # a (re)started node always begins with an election
-        last = None
         while not stop.wait(interval):    # sleeps for interval, but wakes at once when stop is set
             node.check()      # coordinator: is every node Normal?
             node.timeout()    # everyone else: is the coordinator still there?
-            now = describe(node)
-            if now != last:   # only log when something changed
-                log(node, now)
-                last = now
     finally:
         comm.stop()
-        log(node, "stopped")
+        log.info("stopped; %s", message_summary(comm))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -143,6 +186,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"configuration error: {error}", file=sys.stderr)
         return 2
 
+    logging.basicConfig(
+        level=config.log_level, format=f"[node {config.node_id}] %(message)s", stream=sys.stdout
+    )
+    log.info("%s Bully, %d nodes, T = %.1f s", config.algorithm, config.n, config.timeout)
     node, comm = build(config)
 
     # Stop cleanly on Ctrl+C and on `docker stop` (SIGTERM). The handler is needed in a

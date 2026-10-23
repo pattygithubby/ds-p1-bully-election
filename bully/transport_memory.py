@@ -1,8 +1,13 @@
 """In-process transport: all nodes live in one Python process (tests and experiments)."""
 
-from collections import Counter
-
-from .communication import Communication
+from .communication import (
+    ARE_YOU_NORMAL,
+    ARE_YOU_THERE,
+    HALT,
+    NEW_COORDINATOR,
+    READY,
+    Communication,
+)
 
 
 class InMemoryCommunication(Communication):
@@ -15,7 +20,6 @@ class InMemoryCommunication(Communication):
         super().__init__(timeout_bound_t)   # Communication checks and stores the timeout
         self.nodes = {}                     # node id -> node object
         self.crashed = set()                # ids of nodes that are down right now
-        self.sent = Counter()               # message name -> how many were sent
 
     def register(self, node) -> None:
         """Add a node to the cluster so messages can reach it."""
@@ -41,26 +45,27 @@ class InMemoryCommunication(Communication):
         """Count one sent message. Return the target node, or None if it cannot answer."""
         self.sent[message] += 1
         if target_id in self.crashed or target_id not in self.nodes:
+            self.unanswered[message] += 1
             return None
         return self.nodes[target_id]
 
     def probe(self, target_id: int) -> bool:
         """AreYouThere: True if the target is alive."""
-        target = self._deliver(target_id, "AreYouThere")
+        target = self._deliver(target_id, ARE_YOU_THERE)
         if target is None:
             return False
         return target.are_you_there()
 
     def query_normal(self, target_id: int) -> bool | None:
         """AreYouNormal: True or False from the target, None if it does not answer."""
-        target = self._deliver(target_id, "AreYouNormal")
+        target = self._deliver(target_id, ARE_YOU_NORMAL)
         if target is None:
             return None
         return target.are_you_normal()
     
     def send_halt(self, target_id: int, sender_id: int) -> bool:
         """Halt: True if the target acknowledged, False on timeout."""
-        target = self._deliver(target_id, "Halt")
+        target = self._deliver(target_id, HALT)
         if target is None:
             return False
         target.halt(sender_id)
@@ -68,7 +73,7 @@ class InMemoryCommunication(Communication):
 
     def send_new_coordinator(self, target_id: int, sender_id: int) -> bool:
         """NewCoordinator: True if the target acknowledged, False on timeout."""
-        target = self._deliver(target_id, "NewCoordinator")
+        target = self._deliver(target_id, NEW_COORDINATOR)
         if target is None:
             return False
         target.new_coordinator(sender_id)
@@ -76,7 +81,7 @@ class InMemoryCommunication(Communication):
 
     def send_ready(self, target_id: int, sender_id: int, task) -> bool:
         """Ready: True if the target acknowledged, False on timeout."""
-        target = self._deliver(target_id, "Ready")
+        target = self._deliver(target_id, READY)
         if target is None:
             return False
         target.ready(sender_id, task)

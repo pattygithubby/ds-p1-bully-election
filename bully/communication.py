@@ -1,6 +1,15 @@
 from abc import ABC, abstractmethod
+from collections import Counter
 
 from .state import TaskDefinition
+
+# The five messages, named as in the paper. The names are the keys of `sent`,
+# and the UDP transport uses them as the "type" of each packet.
+ARE_YOU_THERE = "AreYouThere"
+ARE_YOU_NORMAL = "AreYouNormal"
+HALT = "Halt"
+NEW_COORDINATOR = "NewCoordinator"
+READY = "Ready"
 
 
 class Communication(ABC):
@@ -10,6 +19,8 @@ class Communication(ABC):
         if timeout_bound_t <= 0:
             raise ValueError("timeout_bound_t must be positive")
         self.timeout_bound_t = timeout_bound_t
+        self.sent: Counter[str] = Counter()  # message name -> how many were sent, answered or not
+        self.unanswered: Counter[str] = Counter()  # message name -> how many got no answer within T
 
     @abstractmethod
     def probe(self, target_id: int) -> bool:

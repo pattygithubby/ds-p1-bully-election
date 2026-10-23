@@ -9,9 +9,10 @@ import pytest
 
 from bully.__main__ import ALGORITHMS
 from bully.original import OriginalNode
+from bully.simulation import Cluster
 from bully.state import Status
 
-from .test_node import Cluster, all_normal
+from .test_node import all_normal
 
 
 def cluster_of(n, down=()):

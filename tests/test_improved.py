@@ -10,9 +10,10 @@ import pytest
 from bully.__main__ import ALGORITHMS
 from bully.improved import ImprovedNode
 from bully.original import OriginalNode
+from bully.simulation import Cluster
 from bully.state import Status, TaskDefinition
 
-from .test_node import Cluster, all_normal, assert_one_coordinator, race
+from .test_node import all_normal, assert_one_coordinator, race
 
 BOTH = pytest.mark.parametrize("node_class", [OriginalNode, ImprovedNode])
 

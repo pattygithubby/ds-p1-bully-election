@@ -1,0 +1,101 @@
+algorithm,scenario,n,repetition,total,election_messages,detection_messages,AreYouThere,AreYouNormal,Halt,NewCoordinator,Ready,unanswered,rounds,leader_calls,elections,seconds,correct_leader
+original,startup,3,0,8,6,2,2,0,2,2,2,0,,,,0.0112,True
+original,startup,3,1,8,6,2,2,0,2,2,2,0,,,,0.0119,True
+original,startup,3,2,8,6,2,2,0,2,2,2,0,,,,0.0108,True
+original,startup,3,3,8,6,2,2,0,2,2,2,0,,,,0.0121,True
+original,startup,3,4,8,6,2,2,0,2,2,2,0,,,,0.0124,True
+improved,startup,3,0,6,4,2,2,0,2,0,2,0,,,,0.011,True
+improved,startup,3,1,6,4,2,2,0,2,0,2,0,,,,0.0115,True
+improved,startup,3,2,6,4,2,2,0,2,0,2,0,,,,0.0111,True
+improved,startup,3,3,6,4,2,2,0,2,0,2,0,,,,0.0117,True
+improved,startup,3,4,6,4,2,2,0,2,0,2,0,,,,0.0126,True
+original,startup,5,0,18,12,6,6,0,4,4,4,2,,,,0.0118,True
+original,startup,5,1,16,12,4,4,0,4,4,4,0,,,,0.012,True
+original,startup,5,2,16,12,4,4,0,4,4,4,0,,,,0.013,True
+original,startup,5,3,16,12,4,4,0,4,4,4,0,,,,0.0117,True
+original,startup,5,4,17,13,4,4,0,5,4,4,1,,,,0.0136,True
+improved,startup,5,0,12,8,4,4,0,4,0,4,0,,,,0.0133,True
+improved,startup,5,1,12,8,4,4,0,4,0,4,0,,,,0.0138,True
+improved,startup,5,2,12,8,4,4,0,4,0,4,0,,,,0.0136,True
+improved,startup,5,3,12,8,4,4,0,4,0,4,0,,,,0.014,True
+improved,startup,5,4,12,8,4,4,0,4,0,4,0,,,,0.0113,True
+original,startup,8,0,28,21,7,7,0,7,7,7,0,,,,0.016,True
+original,startup,8,1,28,21,7,7,0,7,7,7,0,,,,0.0125,True
+original,startup,8,2,28,21,7,7,0,7,7,7,0,,,,0.0142,True
+original,startup,8,3,28,21,7,7,0,7,7,7,0,,,,0.0123,True
+original,startup,8,4,29,21,8,8,0,7,7,7,1,,,,0.017,True
+improved,startup,8,0,22,14,8,8,0,7,0,7,1,,,,0.0157,True
+improved,startup,8,1,21,14,7,7,0,7,0,7,0,,,,0.0124,True
+improved,startup,8,2,22,14,8,8,0,7,0,7,1,,,,0.0153,True
+improved,startup,8,3,22,14,8,8,0,7,0,7,1,,,,0.0121,True
+improved,startup,8,4,21,14,7,7,0,7,0,7,0,,,,0.0133,True
+original,startup,12,0,44,33,11,11,0,11,11,11,0,,,,0.0132,True
+original,startup,12,1,45,33,12,12,0,11,11,11,1,,,,0.0166,True
+original,startup,12,2,46,33,13,13,0,11,11,11,2,,,,0.0135,True
+original,startup,12,3,45,33,12,12,0,11,11,11,1,,,,0.0153,True
+original,startup,12,4,44,33,11,11,0,11,11,11,0,,,,0.0164,True
+improved,startup,12,0,33,22,11,11,0,11,0,11,0,,,,0.0136,True
+improved,startup,12,1,33,22,11,11,0,11,0,11,0,,,,0.0132,True
+improved,startup,12,2,35,23,12,12,0,12,0,11,2,,,,0.0152,True
+improved,startup,12,3,33,22,11,11,0,11,0,11,0,,,,0.014,True
+improved,startup,12,4,34,23,11,11,0,12,0,11,1,,,,0.0154,True
+original,startup,16,0,60,45,15,15,0,15,15,15,0,,,,0.0163,True
+original,startup,16,1,60,45,15,15,0,15,15,15,0,,,,0.0169,True
+original,startup,16,2,63,45,18,18,0,15,15,15,3,,,,0.0146,True
+original,startup,16,3,60,45,15,15,0,15,15,15,0,,,,0.0171,True
+original,startup,16,4,62,45,17,17,0,15,15,15,2,,,,0.0144,True
+improved,startup,16,0,46,30,16,16,0,15,0,15,1,,,,0.0164,True
+improved,startup,16,1,45,30,15,15,0,15,0,15,0,,,,0.0161,True
+improved,startup,16,2,48,30,18,18,0,15,0,15,3,,,,0.0173,True
+improved,startup,16,3,45,30,15,15,0,15,0,15,0,,,,0.0149,True
+improved,startup,16,4,46,30,16,16,0,15,0,15,1,,,,0.0177,True
+original,coordinator crash,3,0,8,3,5,5,0,1,1,1,3,,,,0.6165,True
+original,coordinator crash,3,1,8,3,5,5,0,1,1,1,3,,,,0.6145,True
+original,coordinator crash,3,2,8,3,5,5,0,1,1,1,3,,,,0.6064,True
+original,coordinator crash,3,3,7,3,4,4,0,1,1,1,3,,,,0.6056,True
+original,coordinator crash,3,4,8,3,5,5,0,1,1,1,3,,,,0.6115,True
+improved,coordinator crash,3,0,7,2,5,5,0,1,0,1,3,,,,0.6132,True
+improved,coordinator crash,3,1,7,2,5,5,0,1,0,1,3,,,,0.634,True
+improved,coordinator crash,3,2,7,2,5,5,0,1,0,1,3,,,,0.6155,True
+improved,coordinator crash,3,3,7,2,5,5,0,1,0,1,3,,,,0.6152,True
+improved,coordinator crash,3,4,7,2,5,5,0,1,0,1,3,,,,0.6242,True
+original,coordinator crash,5,0,20,9,11,11,0,3,3,3,5,,,,0.6152,True
+original,coordinator crash,5,1,20,9,11,11,0,3,3,3,5,,,,0.6075,True
+original,coordinator crash,5,2,18,9,9,9,0,3,3,3,5,,,,0.6175,True
+original,coordinator crash,5,3,20,9,11,11,0,3,3,3,5,,,,0.6221,True
+original,coordinator crash,5,4,20,9,11,11,0,3,3,3,5,,,,0.6181,True
+improved,coordinator crash,5,0,17,6,11,11,0,3,0,3,5,,,,0.6318,True
+improved,coordinator crash,5,1,17,6,11,11,0,3,0,3,5,,,,0.6162,True
+improved,coordinator crash,5,2,17,6,11,11,0,3,0,3,5,,,,0.6162,True
+improved,coordinator crash,5,3,17,6,11,11,0,3,0,3,5,,,,0.6251,True
+improved,coordinator crash,5,4,17,6,11,11,0,3,0,3,5,,,,0.6351,True
+original,coordinator crash,8,0,38,18,20,20,0,6,6,6,8,,,,0.6499,True
+original,coordinator crash,8,1,38,18,20,20,0,6,6,6,8,,,,0.623,True
+original,coordinator crash,8,2,38,18,20,20,0,6,6,6,8,,,,0.608,True
+original,coordinator crash,8,3,38,18,20,20,0,6,6,6,8,,,,0.6145,True
+original,coordinator crash,8,4,38,18,20,20,0,6,6,6,8,,,,0.6224,True
+improved,coordinator crash,8,0,32,12,20,20,0,6,0,6,8,,,,0.6279,True
+improved,coordinator crash,8,1,32,12,20,20,0,6,0,6,8,,,,0.6075,True
+improved,coordinator crash,8,2,32,12,20,20,0,6,0,6,8,,,,0.6295,True
+improved,coordinator crash,8,3,32,12,20,20,0,6,0,6,8,,,,0.6249,True
+improved,coordinator crash,8,4,32,12,20,20,0,6,0,6,8,,,,0.6054,True
+original,coordinator crash,12,0,62,30,32,32,0,10,10,10,12,,,,0.6326,True
+original,coordinator crash,12,1,62,30,32,32,0,10,10,10,12,,,,0.6242,True
+original,coordinator crash,12,2,62,30,32,32,0,10,10,10,12,,,,0.6357,True
+original,coordinator crash,12,3,62,30,32,32,0,10,10,10,12,,,,0.6246,True
+original,coordinator crash,12,4,62,30,32,32,0,10,10,10,12,,,,0.6259,True
+improved,coordinator crash,12,0,52,20,32,32,0,10,0,10,12,,,,0.6261,True
+improved,coordinator crash,12,1,52,20,32,32,0,10,0,10,12,,,,0.6226,True
+improved,coordinator crash,12,2,51,20,31,31,0,10,0,10,12,,,,0.6072,True
+improved,coordinator crash,12,3,52,20,32,32,0,10,0,10,12,,,,0.6255,True
+improved,coordinator crash,12,4,52,20,32,32,0,10,0,10,12,,,,0.6255,True
+original,coordinator crash,16,0,86,42,44,44,0,14,14,14,16,,,,0.6224,True
+original,coordinator crash,16,1,86,42,44,44,0,14,14,14,16,,,,0.6363,True
+original,coordinator crash,16,2,86,42,44,44,0,14,14,14,16,,,,0.6204,True
+original,coordinator crash,16,3,86,42,44,44,0,14,14,14,16,,,,0.6234,True
+original,coordinator crash,16,4,86,42,44,44,0,14,14,14,16,,,,0.6337,True
+improved,coordinator crash,16,0,72,28,44,44,0,14,0,14,16,,,,0.6222,True
+improved,coordinator crash,16,1,72,28,44,44,0,14,0,14,16,,,,0.6394,True
+improved,coordinator crash,16,2,72,28,44,44,0,14,0,14,16,,,,0.6155,True
+improved,coordinator crash,16,3,72,28,44,44,0,14,0,14,16,,,,0.6232,True
+improved,coordinator crash,16,4,72,28,44,44,0,14,0,14,16,,,,0.6286,True

@@ -1,15 +1,28 @@
 """UDP transport: one node per container (Docker Compose / Kubernetes)."""
 
 import json
+import logging
 import socket
 import threading
-from collections import Counter
 
-from .communication import Communication
+from .communication import (
+    ARE_YOU_NORMAL,
+    ARE_YOU_THERE,
+    HALT,
+    NEW_COORDINATOR,
+    READY,
+    Communication,
+)
 from .state import TaskDefinition
 
 MAX_PACKET = 65535    # largest UDP packet we are prepared to receive, in bytes
 POLL_INTERVAL = 0.1   # how often the listening loop checks whether it should stop, in seconds
+
+# The two messages check() and timeout() send every few seconds. When they are answered they
+# are routine, so they are only logged at DEBUG level; everything else is logged at INFO.
+HEARTBEATS = {ARE_YOU_THERE, ARE_YOU_NORMAL}
+
+log = logging.getLogger(__name__)
 
 
 def peers_from_template(template: str, n: int) -> dict[int, tuple[str, int]]:
@@ -27,6 +40,10 @@ class UdpCommunication(Communication):
 
     There is one UdpCommunication per node. It also listens for packets from
     the other nodes and passes them to its own node's handlers.
+
+    The paper's Assumption 8 (no message is lost) is assumed here, not guaranteed: UDP can drop
+    a packet, and a lost request or reply looks like a crash and can start an unneeded election.
+    On a single Docker network this practically never happens.
     """
 
     def __init__(self, timeout_bound_t, peers, port, host="0.0.0.0"):
@@ -34,7 +51,6 @@ class UdpCommunication(Communication):
         self.peers = peers                  # node id -> (host, port) of every node
         self.port = port                    # the UDP port this node listens on
         self.host = host                    # the address to listen on; 0.0.0.0 = all network interfaces
-        self.sent = Counter()               # message name -> how many were sent
         self.node = None                    # the node in this container; set by start()
         self._sock = None                   # the listening socket; set by start()
         self._thread = None                 # the background thread that listens
@@ -44,15 +60,15 @@ class UdpCommunication(Communication):
         """Call the handler that matches an incoming request and return the reply to send back."""
         kind = request["type"]
         result = True                                   # the reply for messages that are only acknowledged
-        if kind == "AreYouThere":
+        if kind == ARE_YOU_THERE:
             result = self.node.are_you_there()
-        elif kind == "AreYouNormal":
+        elif kind == ARE_YOU_NORMAL:
             result = self.node.are_you_normal()
-        elif kind == "Halt":
+        elif kind == HALT:
             self.node.halt(request["sender"])
-        elif kind == "NewCoordinator":
+        elif kind == NEW_COORDINATOR:
             self.node.new_coordinator(request["sender"])
-        elif kind == "Ready":
+        elif kind == READY:
             task = TaskDefinition.from_dict(request["task"])   # dict -> TaskDefinition
             self.node.ready(request["sender"], task)
         else:
@@ -92,6 +108,8 @@ class UdpCommunication(Communication):
                 continue    # nothing arrived within POLL_INTERVAL: go round and check _running again
             try:
                 request = json.loads(data.decode("utf-8"))    # bytes -> string -> dict
+                if request["type"] not in HEARTBEATS:
+                    log.info("<- %s from node %s", request["type"], request["sender"])
                 reply = self._handle(request)
                 # Reply to the address the request came from, which is the sender's waiting socket.
                 self._sock.sendto(json.dumps(reply).encode("utf-8"), sender_address)
@@ -102,9 +120,22 @@ class UdpCommunication(Communication):
 
     # --- Sending side: the five messages ---
 
+    def _send(self, target_id: int, message: dict) -> dict | None:
+        """Send one message, count and log it, and return the reply (None means no answer)."""
+        kind = message["type"]
+        self.sent[kind] += 1                       # counted even if nobody answers
+        reply = self._request(target_id, message)
+        if reply is None:
+            self.unanswered[kind] += 1
+            # An unanswered heartbeat is how a failure is detected, so it is always worth showing.
+            log.info("-> %s to node %d: no answer", kind, target_id)
+        else:
+            level = logging.DEBUG if kind in HEARTBEATS else logging.INFO
+            log.log(level, "-> %s to node %d: ok", kind, target_id)
+        return reply
+
     def _request(self, target_id: int, message: dict) -> dict | None:
         """Send message to target_id and wait up to T for the reply. None means no answer."""
-        self.sent[message["type"]] += 1            # counted even if nobody answers
         if target_id not in self.peers:
             return None
         data = json.dumps(message).encode("utf-8")    # dict -> string -> bytes
@@ -121,28 +152,28 @@ class UdpCommunication(Communication):
 
     def probe(self, target_id: int) -> bool:
         """AreYouThere: True if the target is alive."""
-        reply = self._request(target_id, {"type": "AreYouThere"})
+        reply = self._send(target_id, {"type": ARE_YOU_THERE})
         return reply is not None    # any reply at all proves the node is there
 
     def query_normal(self, target_id: int) -> bool | None:
         """AreYouNormal: True or False from the target, None if it does not answer."""
-        reply = self._request(target_id, {"type": "AreYouNormal"})
+        reply = self._send(target_id, {"type": ARE_YOU_NORMAL})
         if reply is None:
             return None    # "no answer" is not the same as "No"
         return reply["result"]
 
     def send_halt(self, target_id: int, sender_id: int) -> bool:
         """Halt: True if the target acknowledged, False on timeout."""
-        reply = self._request(target_id, {"type": "Halt", "sender": sender_id})
+        reply = self._send(target_id, {"type": HALT, "sender": sender_id})
         return reply is not None
 
     def send_new_coordinator(self, target_id: int, sender_id: int) -> bool:
         """NewCoordinator: True if the target acknowledged, False on timeout."""
-        reply = self._request(target_id, {"type": "NewCoordinator", "sender": sender_id})
+        reply = self._send(target_id, {"type": NEW_COORDINATOR, "sender": sender_id})
         return reply is not None
 
     def send_ready(self, target_id: int, sender_id: int, task: TaskDefinition) -> bool:
         """Ready: True if the target acknowledged, False on timeout."""
-        message = {"type": "Ready", "sender": sender_id, "task": task.to_dict()}   # JSON cannot carry a TaskDefinition
-        reply = self._request(target_id, message)
+        message = {"type": READY, "sender": sender_id, "task": task.to_dict()}   # JSON cannot carry a TaskDefinition
+        reply = self._send(target_id, message)
         return reply is not None

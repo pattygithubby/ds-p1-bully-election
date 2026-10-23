@@ -1,49 +1,7 @@
 from bully.original import OriginalNode
+from bully.simulation import Cluster
 from bully.state import Status, TaskDefinition
-from bully.storage import MemoryStorage
 from bully.transport_memory import InMemoryCommunication
-
-
-class Cluster:
-    """n real nodes on one in-memory transport, each with its own storage."""
-
-    def __init__(self, n, comm=None, node_class=OriginalNode):
-        self.n = n
-        self.node_class = node_class
-        self.comm = comm or InMemoryCommunication(timeout_bound_t=1)
-        self.stores = {i: MemoryStorage() for i in range(1, n + 1)}
-        self.nodes = {}
-        for i in range(1, n + 1):
-            self.boot(i)
-
-    def boot(self, node_id):
-        """(Re)start a node from its safe storage, as after a crash. Does not run recovery()."""
-        self.comm.restart(node_id)
-        self.nodes[node_id] = self.node_class(node_id, self.n, self.comm, self.stores[node_id])
-        self.comm.register(self.nodes[node_id])
-        return self.nodes[node_id]
-
-    def recover_all(self):
-        """Run recovery() on every node that is up. A crashed node must not send anything."""
-        for node_id in sorted(self.nodes):
-            if node_id not in self.comm.crashed:
-                self.nodes[node_id].recovery()
-
-    def rounds(self, count=3):
-        """What serve() does periodically, for every node that is up."""
-        for _ in range(count):
-            for node_id in sorted(self.nodes):
-                if node_id not in self.comm.crashed:
-                    self.nodes[node_id].check()
-                    self.nodes[node_id].timeout()
-
-    def view(self):
-        """{id: (status, coordinator)} for every node that is up."""
-        return {
-            node_id: (node.state.s, node.state.c)
-            for node_id, node in sorted(self.nodes.items())
-            if node_id not in self.comm.crashed
-        }
 
 
 def all_normal(ids, coordinator):

@@ -7,7 +7,8 @@ A high-level description of every class, method and function in `bully/`, file b
 - **`Node`** holds the state and the five message handlers shared by both variants. **`OriginalNode`** adds the paper's election procedures on top. Neither touches sockets or files directly.
 - **`Communication`** is the interface a node uses to send the five protocol messages. There are two implementations: `InMemoryCommunication` (tests and experiments) and `UdpCommunication` (Docker / Kubernetes).
 - **`SafeStorage`** persists the node's `StateVector` so it survives a crash. `MemoryStorage` is the in-memory version for tests.
-- **`__main__`** wires these together and runs one node until it is stopped.
+- **`__main__`** wires these together and runs one node until it is stopped, logging what it does.
+- **`simulation`** runs many nodes in one process for the system tests and the experiments, and checks the paper's Assertion 1 after every state change.
 
 The five protocol messages and the node method each one triggers on the receiver:
 
@@ -90,12 +91,14 @@ Abstract base class. A node calls these methods to talk to another node; each re
 
 | Method | Description |
 |---|---|
-| `__init__(timeout_bound_t)` | Stores T. Raises `ValueError` if it is not positive. |
+| `__init__(timeout_bound_t)` | Stores T and creates two message counters: `sent` counts every message sent, answered or not, and `unanswered` the ones that got no answer within T. Raises `ValueError` if T is not positive. |
 | `probe(target_id)` | AreYouThere. `True` if the target answers, otherwise `False`. |
 | `query_normal(target_id)` | AreYouNormal. `True` or `False` from the target, or `None` if it does not answer. |
 | `send_halt(target_id, sender_id)` | Sends Halt. `True` if acknowledged, `False` on timeout. |
 | `send_new_coordinator(target_id, sender_id)` | Sends NewCoordinator. `True` if acknowledged, `False` on timeout. |
 | `send_ready(target_id, sender_id, task)` | Sends Ready with the task definition. `True` if acknowledged, `False` on timeout. |
+
+The module also defines the five message names (`ARE_YOU_THERE`, `ARE_YOU_NORMAL`, `HALT`, `NEW_COORDINATOR`, `READY`). Both transports use them, so the counts in `sent` mean the same in tests, experiments and Docker.
 
 ## `transport_memory.py` — `InMemoryCommunication`
 
@@ -103,27 +106,30 @@ All nodes live in one Python process and share one instance. A message is delive
 
 | Method | Description |
 |---|---|
-| `__init__(timeout_bound_t)` | Creates the empty node registry, the set of crashed ids, and the message counter `sent`. |
+| `__init__(timeout_bound_t)` | Creates the empty node registry and the set of crashed ids. |
 | `register(node)` | Adds a node to the cluster so messages can reach it. |
 | `crash(node_id)` | Simulates a crash: the node stops answering. Only incoming messages are blocked, so the caller must also stop calling the crashed node's own procedures. |
 | `restart(node_id)` | The node answers again. Safe to call for a node that was never crashed. To model a real recovery, build a new `Node` on the same storage, register it, and call its `recovery()`. |
-| `_deliver(target_id, message)` | Counts one sent message and returns the target node, or `None` if it is crashed or not registered. |
+| `_deliver(target_id, message)` | Counts one sent message and returns the target node, or `None` (counted as unanswered) if it is crashed or not registered. |
 | `probe`, `query_normal`, `send_halt`, `send_new_coordinator`, `send_ready` | Implement the `Communication` interface on top of `_deliver`. |
 
 ## `transport_udp.py` — `UdpCommunication`
 
 One instance per node, one node per container. Messages are JSON in UDP packets.
 
+The paper's Assumption 8 (no message is lost) is assumed, not guaranteed: UDP can drop a packet, and a lost request or reply looks like a crash and can start an unneeded election. On a single Docker network this practically never happens.
+
 | Function / method | Description |
 |---|---|
 | `peers_from_template(template, n)` | Module-level function. Expands an address template such as `"node{id}:9000"` or `"bully-{ord}.bully:9000"` into a map from node id to `(host, port)` for ids 1..n. |
-| `__init__(timeout_bound_t, peers, port, host)` | Stores the peer map, the listening port and address, and the message counter `sent`. Nothing is opened yet. |
+| `__init__(timeout_bound_t, peers, port, host)` | Stores the peer map and the listening port and address. Nothing is opened yet. |
 | `start(node)` | Opens the listening socket and starts a background thread that answers requests on behalf of `node`. |
 | `stop()` | Stops the thread and closes the socket. To the other nodes this looks like a crash. |
-| `_serve()` | The listening loop in the background thread: receive a packet, decode it, call `_handle`, send the reply back. A broken packet or failing handler sends no reply, so the sender sees a timeout. |
+| `_serve()` | The listening loop in the background thread: receive a packet, decode it, log it (election messages only), call `_handle`, send the reply back. A broken packet or failing handler sends no reply, so the sender sees a timeout. |
 | `_handle(request)` | Calls the `Node` handler that matches the request's `type` and returns the reply dict. Raises `ValueError` for an unknown type. |
+| `_send(target_id, message)` | Counts and logs one message, sends it with `_request`, and returns the reply. Election messages and unanswered messages are logged at INFO; answered heartbeats (AreYouThere, AreYouNormal) only at DEBUG. |
 | `_request(target_id, message)` | Sends one message on a fresh socket and waits up to T for the reply. Returns the reply dict, or `None` on timeout, unknown host or unknown id. A new socket per request means a late reply to an earlier request cannot be mistaken for this one. |
-| `probe`, `query_normal`, `send_halt`, `send_new_coordinator`, `send_ready` | Implement the `Communication` interface on top of `_request`. |
+| `probe`, `query_normal`, `send_halt`, `send_new_coordinator`, `send_ready` | Implement the `Communication` interface on top of `_send`. |
 
 ## `state.py`
 
@@ -154,12 +160,35 @@ Entry point for `python -m bully node`, configured through `BULLY_*` environment
 
 | Function / method | Description |
 |---|---|
-| `Config` | Frozen dataclass with the settings for one node: id, n, algorithm, peer template, port, state directory and timeout. |
+| `Config` | Frozen dataclass with the settings for one node: id, n, algorithm, peer template, port, state directory, timeout and log level. |
 | `Config.from_env(env)` | Builds a `Config` from a dict of environment variables and validates it. Raises `ValueError` if a value is missing or wrong. |
 | `_number(env, name, kind, default)` | Reads one variable as an int or float, with a clear error if it is missing or not a number. |
 | `_id_from_hostname(hostname)` | Derives the node id from a Kubernetes pod name: `bully-3` is node 4. |
-| `build(config)` | Creates the storage, the UDP communication and the node. Nothing is started. |
-| `describe(node)` | Returns a one-line summary of the node's status and coordinator. |
-| `log(node, text)` | Prints a line prefixed with the node id. |
-| `serve(node, comm, stop, interval)` | Starts the transport, runs `recovery()`, then calls `check()` and `timeout()` every `interval` seconds until `stop` is set. Logs only when the status changes, and always stops the transport on the way out. |
-| `main(argv)` | Checks the arguments, loads the config, installs SIGINT/SIGTERM handlers, and calls `serve`. Returns the exit code. |
+| `describe(node_id, state)` | Says in one line what a state means, e.g. `ELECTION: halted by node 5, waiting for it` or `NORMAL: coordinator of nodes [1, 2, 3, 4]`. |
+| `LoggingStorage(path, node_id)` | A `SafeStorage` that also logs the state each time its description changes. Every state change is saved, so this is where every change can be seen, whichever thread made it. |
+| `message_summary(comm)` | E.g. `sent 37 messages (AreYouThere 20, Halt 6, ...), 5 unanswered`. |
+| `build(config)` | Creates the logging storage, the UDP communication and the node. Nothing is started. |
+| `serve(node, comm, stop, interval)` | Starts the transport, runs `recovery()`, then calls `check()` and `timeout()` every `interval` seconds until `stop` is set. Always stops the transport on the way out and logs the message totals. |
+| `main(argv)` | Checks the arguments, loads the config, sets up logging (`[node i] ...` lines on stdout, level from `BULLY_LOG_LEVEL`), installs SIGINT/SIGTERM handlers, and calls `serve`. Returns the exit code. |
+
+## `simulation.py`
+
+Many nodes in one process: the harness for the system tests and the experiments.
+
+| Class / function | Description |
+|---|---|
+| `Cluster(n, comm, node_class)` | n real nodes on one `InMemoryCommunication`. `boot(i)` (re)starts a node from its storage, `crash(i)` stops it, `recover_all()` and `rounds(count)` do what `serve()` does, `view()` shows `(status, coordinator)` per live node, and `settled()` tells whether Assertion 2 holds. |
+| `SafetyMonitor` | Created by every `Cluster`. Each node gets a storage that reports its saves here, and after every save it checks Assertion 1 on all live nodes: (a) everyone in Reorganization or Normal has the same coordinator, (b) everyone in Normal has the same task. Raises `SafetyViolation` at once otherwise. It also counts its checks and the completed elections. |
+| `UdpCluster(n, node_class, timeout_bound_t, interval)` | n real nodes over UDP on localhost, each running `serve()` in its own thread. While a node is down its port stays bound to a socket that never answers, so a message to it costs the full T, as on a real network. |
+| `all_follow_highest(states)` | Assertion 2: every live node is Normal and follows the highest live node. |
+
+## `experiments/`
+
+Run with `python -m experiments.run`; see the README for the results.
+
+| Module | Description |
+|---|---|
+| `scenarios.py` | The eight in-memory scenarios, each a `prepare` step (not measured) and a `trigger` (measured, followed by check/timeout rounds until Assertion 2 holds). `MeteredCommunication` also counts each node's calls, which bounds its running time in units of T. |
+| `measure.py` | `measure_in_memory(algorithm, scenario, n)` and `measure_over_udp(algorithm, scenario, n, repetition)` return a `Measurement`: messages by type, unanswered messages, rounds, the leader's calls, elections, seconds, and whether the right leader was elected. |
+| `report.py` | Writes the CSV files, the plots and `summary.md`. |
+| `run.py` | Runs everything and writes `results/`. `--no-udp` skips the concurrent runs. |
