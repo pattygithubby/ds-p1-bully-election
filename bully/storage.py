@@ -21,32 +21,30 @@ class SafeStorage:
         Returns exactly what was stored. Resetting s to Down on recovery is the node's job.
         """
         if not self.path.exists():
-            return StateVector()  # first start: this node has never saved anything
-        text = self.path.read_text(encoding="utf-8")
-        data = json.loads(text)
-        return StateVector.from_dict(data)
+            return StateVector()  # first start
+        return StateVector.from_dict(json.loads(self.path.read_text(encoding="utf-8")))
 
     def atomic_update(self, state: StateVector) -> None:
         """Save the state so that a crash leaves either the old file or the new one, never half of one."""
         text = json.dumps(state.to_dict())
 
-        # Write to a temp file first, so the real file is untouched until the new one is complete.
+        # Write a temp file first, so the real file is untouched until the new one is complete
         tmp = tempfile.NamedTemporaryFile(
             mode="w",
             encoding="utf-8",
-            dir=self.path.parent,  # same folder: os.replace is only atomic within one filesystem
-            delete=False,          # we rename it ourselves
+            dir=self.path.parent,  # os.replace is only atomic within one filesystem
+            delete=False,
             suffix=".tmp",
         )
         try:
             with tmp:
                 tmp.write(text)
-                tmp.flush()             # Python's buffer -> operating system
-                os.fsync(tmp.fileno())  # operating system -> physical disk
-            # The file must be closed before the rename (Windows cannot rename an open file).
-            os.replace(tmp.name, self.path)  # atomic swap: readers see the old or the new file
+                tmp.flush()
+                os.fsync(tmp.fileno())  # make sure it is on disk, not just in the OS cache
+            # Closed before the rename, because Windows can't rename an open file
+            os.replace(tmp.name, self.path)
         except Exception:
-            os.unlink(tmp.name)  # do not leave a half-written temp file behind
+            os.unlink(tmp.name)
             raise
 
 
@@ -58,12 +56,12 @@ class MemoryStorage(SafeStorage):
     """
 
     def __init__(self):
-        self._stored: StateVector | None = None  # None = nothing saved yet
+        self._stored: StateVector | None = None
 
     def load(self) -> StateVector:
         if self._stored is None:
             return StateVector()
-        return copy.deepcopy(self._stored)  # the caller must not be able to change what is stored
+        return copy.deepcopy(self._stored)
 
     def atomic_update(self, state: StateVector) -> None:
-        self._stored = copy.deepcopy(state)  # a snapshot of the state as it is right now
+        self._stored = copy.deepcopy(state)

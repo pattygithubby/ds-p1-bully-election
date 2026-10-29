@@ -1,8 +1,8 @@
 # P1: Leader Election
 
-Group project: Garcia-Molina's **Bully** election algorithm [1] and an improved variant that
+Garcia-Molina's **Bully** election algorithm [1] and an improved variant that
 sends fewer messages. Both are implemented, tested, deployed one node per container, and
-compared in experiments. The assignment text is below, under [Assignment](#assignment).
+compared in experiments.
 
 ## Contents
 
@@ -11,7 +11,7 @@ compared in experiments. The assignment text is below, under [Assignment](#assig
 | [bully/](bully) | The algorithms ([original.py](bully/original.py), [improved.py](bully/improved.py), shared [node.py](bully/node.py)), the state vector and safe storage, two transports (in memory and UDP), the entry point [\_\_main\_\_.py](bully/__main__.py), and [simulation.py](bully/simulation.py) for running many nodes in one process |
 | [tests/](tests) | Unit tests, system tests in memory and over UDP, safety tests with random faults, and tests of the experiments |
 | [experiments/](experiments) | The comparative experiments; their output is in [results/](results) |
-| [docs/](docs) | The paper's notes ([bully-ref1.md](docs/bully-ref1.md)), a method reference ([methods.md](docs/methods.md)) and the UML diagrams ([figures/](docs/figures)) |
+| [docs/](docs) | The paper's notes ([bully-ref1.md](docs/bully-ref.md))  and the UML diagrams ([figures/](docs/figures)) |
 | [Dockerfile](Dockerfile), [docker-compose.yml](docker-compose.yml), [k8s/bully.yaml](k8s/bully.yaml) | One node per container |
 
 ## Running it
@@ -74,7 +74,7 @@ kubectl delete pod bully-4              # the coordinator (node 5) crashes; the 
 ## The two algorithms
 
 Both follow Garcia-Molina's Bully algorithm for the strict environment (Assumptions 1-9 in
-[bully-ref1.md](docs/bully-ref1.md)). A node that notices a problem probes every higher node;
+[bully-ref1.md](docs/bully-ref.md)). A node that notices a problem probes every higher node;
 if none answers, it halts every lower node, and then announces itself.
 
 | | Messages to the i - 1 lower nodes | States of a lower node |
@@ -175,9 +175,6 @@ All 228 runs elected the highest live node.
 
 ### Comparing with other leader election algorithms
 
-The data is split so that each column can be set against a known algorithm. These are typical
-figures from the literature; check them against your own sources for the report.
-
 | This project measures | Corresponds to | Typical figure in the literature |
 |---|---|---|
 | election messages for one failure (Halt, NewCoordinator, Ready) | messages per election | textbook Bully: O(n^2) worst case. Ring (Chang-Roberts): O(n log n) average, O(n^2) worst. Raft: one RequestVote round, about 2(n - 1) per attempt, plus retries after split votes. ZooKeeper FLE: O(n^2) vote notifications |
@@ -185,60 +182,6 @@ figures from the literature; check them against your own sources for the report.
 | join scenarios | leader stability when nodes join | Raft: a joining node does not trigger an election. Bully: every join does |
 | leader calls (x T), UDP seconds | election time | Raft: election timeout (150-300 ms in the paper) plus one round trip |
 
-## Design documents
-
-- [docs/methods.md](docs/methods.md): every class and method, file by file.
-- [docs/figures/](docs/figures), to open with draw.io (or the draw.io extension for VS Code):
-  - `class-diagram.drawio`: the classes, including both algorithms and both transports;
-  - `state-machine.drawio`: the states of a node;
-  - `activity-diagram.drawio`: `Election(i)` for both variants;
-  - `sequence-diagram.drawio` and `sequence-diagram-improved.drawio`: a coordinator crash,
-    with each algorithm.
-
-### Where the implementation departs from the paper
-
-- **Assumption 8** (no message is lost) is assumed for UDP, not guaranteed. A lost packet
-  looks like a crash and can start an unneeded election.
-- **Assumption 9** (a node that may have been too slow crashes itself) is not implemented.
-- **`Timeout(i)`** runs periodically, every check interval, rather than "when nothing has been
-  heard from the coordinator for a while".
-- **The Invitation algorithm**, for the relaxed environment, is outside the assignment's scope.
-- **A finding from the fault-injection tests:** when the test harness wrongly let a crashed node
-  keep sending (breaking fail-stop, Assumption 5), only the improved variant violated
-  Assertion 1. With fail-stop respected, both are safe. The improved variant therefore leans
-  harder on fail-stop behaviour than the original does.
-
----
-
-# Assignment
-
-## Background
-
-This project is about leader election in distributed systems. Many distributed systems require a single process/node to act as a leader of the computational tasks to be carried out. The election is conducted by a so called leader election algorithm.
-
-## Problem Formulation
-
-The focus of the present project is to design, implement, verify, compare, and document:
-
-- The original Bully Election algorithm [1]
-- An improved version of the original Bully Election algorithm [A]
-
-In the design phase, the algorithms should be fully or partly modeled/designed by UML.
-
-If you have prior experience with Docker and Kubernetes, you may establish a distributed system, by creating virtual nodes by bundling the nodes’ leader election code/functionality in individual Docker containers and use Kubernetes for orchestration.
-
-The implementation should preferably be done in Python, and the verification should cover at least unit-tests (manual or automated) and a system test (for both versions, ie. for both the original Bully Election algorithm and for your improved version).
-
-The improved version of the Bully Election algorithm should be optimized with regard message complexity and optionally time and space complexities.
-
-Both the original and the improved version of the Bully Election algorithm should be proven functional via concrete experiments. The experiments should be comparative and focus on objectively quantifying the differences between the two algorithms in terms of the actual leader election outcome and message complexity and optionally time and space complexities.
-
-As an overall assessment of the Bully Election algorithms, a brief comparison with state of the art within leader election should be conducted.
-
-## Notes
-
-**[A]** You can find already existing material regarding both the original Bully Election algorithm and improvements on the internet. You are welcome to use this material as long as you do proper referencing.
-
 ## References
 
-1. Hector Garcia-Molina. “Elections in a Distributed Computing System”. *IEEE Transactions on Computers*, C-31.1 (1982), pp. 48–59. Found at bully-ref1.md
+1. Hector Garcia-Molina. “Elections in a Distributed Computing System”. *IEEE Transactions on Computers*, C-31.1 (1982), pp. 48–59. Found at bully-ref.md

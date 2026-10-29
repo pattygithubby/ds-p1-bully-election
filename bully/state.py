@@ -21,12 +21,11 @@ class Status(Enum):
 class TaskDefinition:
     """S(i).d: the task the coordinator hands out in Ready.
 
-    Frozen (immutable) because the same object is sent to every node,
-    so no node may change it.
+    Frozen, because the same object is handed to every node.
     """
 
-    participants: tuple[int, ...] = ()  # ids of the nodes taking part in the task
-    application_algorithm: str = ""     # what the nodes should run
+    participants: tuple[int, ...] = ()
+    application_algorithm: str = ""
 
     def to_dict(self) -> dict:
         return {
@@ -37,27 +36,24 @@ class TaskDefinition:
     @classmethod
     def from_dict(cls, data: dict) -> "TaskDefinition":
         return cls(
-            participants=tuple(data["participants"]),  # JSON gives a list back
+            participants=tuple(data["participants"]),
             application_algorithm=data["application_algorithm"],
         )
 
 
 @dataclass
 class StateVector:
-    """S(i): everything a node must remember across a crash.
+    """S(i): everything a node must remember across a crash."""
 
-    Not frozen: the node updates these fields as the election progresses.
-    """
-
-    s: Status = Status.DOWN          # status
+    s: Status = Status.DOWN
     c: int | None = None             # coordinator; c == own id means "I am coordinator"
     d: TaskDefinition | None = None  # task definition, None until Ready is received
     h: int | None = None             # last node that halted this node; rejects stale messages
-    up: set[int] = field(default_factory=set)  # nodes that answered Halt (used by the coordinator)
+    up: set[int] = field(default_factory=set)  # nodes that acknowledged our Halt
 
     def to_dict(self) -> dict:
         return {
-            "s": self.s.name,  # store the name, e.g. "NORMAL"
+            "s": self.s.name,
             "c": self.c,
             "d": self.d.to_dict() if self.d is not None else None,
             "h": self.h,
@@ -67,7 +63,7 @@ class StateVector:
     @classmethod
     def from_dict(cls, data: dict) -> "StateVector":
         return cls(
-            s=Status[data["s"]],  # "NORMAL" -> Status.NORMAL
+            s=Status[data["s"]],
             c=data["c"],
             d=TaskDefinition.from_dict(data["d"]) if data["d"] is not None else None,
             h=data["h"],

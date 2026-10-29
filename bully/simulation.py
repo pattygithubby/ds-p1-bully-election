@@ -50,10 +50,10 @@ class SafetyMonitor:
     """
 
     def __init__(self, comm: InMemoryCommunication):
-        self.comm = comm      # tells which nodes are crashed
+        self.comm = comm      # knows which nodes are crashed
         self.states = {}      # node id -> the state it saved last
-        self.checks = 0       # how many times Assertion 1 was checked
-        self.elections = 0    # how many times a node became Normal as coordinator
+        self.checks = 0
+        self.elections = 0    # times a node became Normal as coordinator
 
     def storage(self, node_id: int) -> MemoryStorage:
         """A storage for node_id that reports every save to this monitor."""

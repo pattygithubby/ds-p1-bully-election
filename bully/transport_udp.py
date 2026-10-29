@@ -29,8 +29,8 @@ def peers_from_template(template: str, n: int) -> dict[int, tuple[str, int]]:
     """Turn "node{id}:9000" into {1: ("node1", 9000), 2: ("node2", 9000), ...} for ids 1..n."""
     peers = {}
     for node_id in range(1, n + 1):
-        address = template.format(id=node_id, ord=node_id-1)   # e.g. "node3:9000"
-        host, port = address.rsplit(":", 1)                   # "node3", "9000"
+        address = template.format(id=node_id, ord=node_id - 1)
+        host, port = address.rsplit(":", 1)
         peers[node_id] = (host, int(port))
     return peers
 
@@ -47,19 +47,19 @@ class UdpCommunication(Communication):
     """
 
     def __init__(self, timeout_bound_t, peers, port, host="0.0.0.0"):
-        super().__init__(timeout_bound_t)   # Communication checks and stores the timeout
-        self.peers = peers                  # node id -> (host, port) of every node
-        self.port = port                    # the UDP port this node listens on
-        self.host = host                    # the address to listen on; 0.0.0.0 = all network interfaces
-        self.node = None                    # the node in this container; set by start()
-        self._sock = None                   # the listening socket; set by start()
-        self._thread = None                 # the background thread that listens
-        self._running = False               # True while the background thread should keep going
+        super().__init__(timeout_bound_t)
+        self.peers = peers   # node id -> (host, port)
+        self.port = port
+        self.host = host     # 0.0.0.0 listens on every interface
+        self.node = None     # set by start(), together with the socket and the thread
+        self._sock = None
+        self._thread = None
+        self._running = False
 
     def _handle(self, request: dict) -> dict:
         """Call the handler that matches an incoming request and return the reply to send back."""
         kind = request["type"]
-        result = True                                   # the reply for messages that are only acknowledged
+        result = True   # Halt, NewCoordinator and Ready are only acknowledged
         if kind == ARE_YOU_THERE:
             result = self.node.are_you_there()
         elif kind == ARE_YOU_NORMAL:
@@ -69,7 +69,7 @@ class UdpCommunication(Communication):
         elif kind == NEW_COORDINATOR:
             self.node.new_coordinator(request["sender"])
         elif kind == READY:
-            task = TaskDefinition.from_dict(request["task"])   # dict -> TaskDefinition
+            task = TaskDefinition.from_dict(request["task"])
             self.node.ready(request["sender"], task)
         else:
             raise ValueError(f"unknown message type: {kind}")
@@ -80,12 +80,11 @@ class UdpCommunication(Communication):
     def start(self, node) -> None:
         """Open the listening socket and start answering requests on behalf of node."""
         self.node = node
-        self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)   # SOCK_DGRAM = UDP
+        self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._sock.bind((self.host, self.port))
-        self._sock.settimeout(POLL_INTERVAL)       # so _serve wakes up regularly to check _running
-        self.port = self._sock.getsockname()[1]    # the real port, in case port 0 ("any free port") was asked for
+        self._sock.settimeout(POLL_INTERVAL)      # so _serve notices when it should stop
+        self.port = self._sock.getsockname()[1]   # the port actually bound, if 0 was asked for
         self._running = True
-        # daemon=True: the thread must not keep the program alive when the main program ends.
         self._thread = threading.Thread(target=self._serve, daemon=True)
         self._thread.start()
 
@@ -93,7 +92,7 @@ class UdpCommunication(Communication):
         """Stop answering requests. To the other nodes this looks like a crash."""
         self._running = False
         if self._thread is not None:
-            self._thread.join()                    # wait for _serve to finish its current round
+            self._thread.join()
             self._thread = None
         if self._sock is not None:
             self._sock.close()
@@ -105,17 +104,17 @@ class UdpCommunication(Communication):
             try:
                 data, sender_address = self._sock.recvfrom(MAX_PACKET)
             except OSError:
-                continue    # nothing arrived within POLL_INTERVAL: go round and check _running again
+                continue   # nothing arrived within POLL_INTERVAL
             try:
-                request = json.loads(data.decode("utf-8"))    # bytes -> string -> dict
+                request = json.loads(data.decode("utf-8"))
                 if request["type"] not in HEARTBEATS:
                     log.info("<- %s from node %s", request["type"], request["sender"])
                 reply = self._handle(request)
-                # Reply to the address the request came from, which is the sender's waiting socket.
+                # The sender is waiting for the reply on the socket the request came from
                 self._sock.sendto(json.dumps(reply).encode("utf-8"), sender_address)
             except Exception:
                 # A broken packet or a failing handler must not stop the loop.
-                # No reply is sent, so the sender sees a timeout.
+                # Without a reply, the sender sees a timeout.
                 continue
 
     # --- Sending side: the five messages ---
@@ -123,11 +122,11 @@ class UdpCommunication(Communication):
     def _send(self, target_id: int, message: dict) -> dict | None:
         """Send one message, count and log it, and return the reply (None means no answer)."""
         kind = message["type"]
-        self.sent[kind] += 1                       # counted even if nobody answers
+        self.sent[kind] += 1   # counted even if nobody answers
         reply = self._request(target_id, message)
         if reply is None:
             self.unanswered[kind] += 1
-            # An unanswered heartbeat is how a failure is detected, so it is always worth showing.
+            # This is how a failure shows up, so it is logged even for heartbeats
             log.info("-> %s to node %d: no answer", kind, target_id)
         else:
             level = logging.DEBUG if kind in HEARTBEATS else logging.INFO
@@ -138,28 +137,28 @@ class UdpCommunication(Communication):
         """Send message to target_id and wait up to T for the reply. None means no answer."""
         if target_id not in self.peers:
             return None
-        data = json.dumps(message).encode("utf-8")    # dict -> string -> bytes
-        # A new socket for every request: the only thing that can arrive on it is the reply
-        # to this request, so a late reply to an earlier one can never be mistaken for it.
+        data = json.dumps(message).encode("utf-8")
+        # A new socket for every request, so a late reply to an earlier request
+        # can never be mistaken for the reply to this one
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-            sock.settimeout(self.timeout_bound_t)     # the bound T from Assumption 8
+            sock.settimeout(self.timeout_bound_t)   # the bound T from Assumption 8
             try:
                 sock.sendto(data, self.peers[target_id])
                 reply, _ = sock.recvfrom(MAX_PACKET)
             except OSError:
-                return None    # timeout, unknown host name, or port closed: the target is down
+                return None   # timeout, unknown host or closed port: the target is down
         return json.loads(reply.decode("utf-8"))
 
     def probe(self, target_id: int) -> bool:
         """AreYouThere: True if the target is alive."""
         reply = self._send(target_id, {"type": ARE_YOU_THERE})
-        return reply is not None    # any reply at all proves the node is there
+        return reply is not None
 
     def query_normal(self, target_id: int) -> bool | None:
         """AreYouNormal: True or False from the target, None if it does not answer."""
         reply = self._send(target_id, {"type": ARE_YOU_NORMAL})
         if reply is None:
-            return None    # "no answer" is not the same as "No"
+            return None   # no answer is not the same as "no"
         return reply["result"]
 
     def send_halt(self, target_id: int, sender_id: int) -> bool:
@@ -174,6 +173,6 @@ class UdpCommunication(Communication):
 
     def send_ready(self, target_id: int, sender_id: int, task: TaskDefinition) -> bool:
         """Ready: True if the target acknowledged, False on timeout."""
-        message = {"type": READY, "sender": sender_id, "task": task.to_dict()}   # JSON cannot carry a TaskDefinition
+        message = {"type": READY, "sender": sender_id, "task": task.to_dict()}
         reply = self._send(target_id, message)
         return reply is not None

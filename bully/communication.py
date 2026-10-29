@@ -1,3 +1,5 @@
+"""The interface a node uses to send the five protocol messages."""
+
 from abc import ABC, abstractmethod
 from collections import Counter
 

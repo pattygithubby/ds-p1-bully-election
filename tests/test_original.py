@@ -1,4 +1,4 @@
-"""The original Bully algorithm checked against the paper (docs/bully-ref1.md).
+"""The original Bully algorithm checked against the paper (docs/bully-ref.md).
 
 The message counts follow from the pseudocode of Election(i): one AreYouThere per higher
 node until one answers, one Halt per lower node, and one NewCoordinator and one Ready

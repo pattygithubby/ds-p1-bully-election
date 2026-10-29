@@ -8,6 +8,7 @@ from .communication import (
     READY,
     Communication,
 )
+from .state import TaskDefinition
 
 
 class InMemoryCommunication(Communication):
@@ -16,14 +17,14 @@ class InMemoryCommunication(Communication):
     One InMemoryCommunication is shared by all nodes in the simulated cluster.
     """
 
-    def __init__(self, timeout_bound_t):
-        super().__init__(timeout_bound_t)   # Communication checks and stores the timeout
-        self.nodes = {}                     # node id -> node object
-        self.crashed = set()                # ids of nodes that are down right now
+    def __init__(self, timeout_bound_t: float):
+        super().__init__(timeout_bound_t)
+        self.nodes = {}        # node id -> node
+        self.crashed = set()   # ids of the nodes that are down right now
 
     def register(self, node) -> None:
         """Add a node to the cluster so messages can reach it."""
-        self.nodes[node.id] = node            # key: the node's id, value: the node itself
+        self.nodes[node.id] = node
 
     def crash(self, node_id: int) -> None:
         """Simulate a crash: the node stops answering.
@@ -39,8 +40,8 @@ class InMemoryCommunication(Communication):
         A recovering node starts from safe storage, not from its old memory: build a new
         Node on the same storage, register() it, and call its recovery().
         """
-        self.crashed.discard(node_id)           # must not fail if the node was never crashed
-        
+        self.crashed.discard(node_id)   # discard, not remove: the node may never have crashed
+
     def _deliver(self, target_id: int, message: str):
         """Count one sent message. Return the target node, or None if it cannot answer."""
         self.sent[message] += 1
@@ -62,7 +63,7 @@ class InMemoryCommunication(Communication):
         if target is None:
             return None
         return target.are_you_normal()
-    
+
     def send_halt(self, target_id: int, sender_id: int) -> bool:
         """Halt: True if the target acknowledged, False on timeout."""
         target = self._deliver(target_id, HALT)
@@ -79,7 +80,7 @@ class InMemoryCommunication(Communication):
         target.new_coordinator(sender_id)
         return True
 
-    def send_ready(self, target_id: int, sender_id: int, task) -> bool:
+    def send_ready(self, target_id: int, sender_id: int, task: TaskDefinition) -> bool:
         """Ready: True if the target acknowledged, False on timeout."""
         target = self._deliver(target_id, READY)
         if target is None:

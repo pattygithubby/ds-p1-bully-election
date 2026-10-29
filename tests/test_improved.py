@@ -139,7 +139,7 @@ def test_highest_node_becomes_coordinator(node_class):
 def test_all_nodes_get_the_same_task(node_class):
     cluster = cluster_of(3, node_class)
     cluster.recover_all()
-    task = TaskDefinition(participants=(1, 2, 3), application_algorithm="behandl opgaver")
+    task = TaskDefinition(participants=(1, 2, 3), application_algorithm="process tasks")
     assert [node.state.d for node in cluster.nodes.values()] == [task, task, task]
 
 
